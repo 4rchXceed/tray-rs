@@ -2,27 +2,17 @@ use std::{fmt, io, mem, path::Path, ptr, sync::Arc};
 
 use once_cell::sync::Lazy;
 use windows_sys::{
-    core::PCWSTR,
-    s,
     Win32::{
-        Foundation::{FALSE, HWND, LPARAM, LRESULT, POINT, RECT, S_OK, TRUE, WPARAM},
+        Foundation::{HWND, LPARAM, LRESULT, POINT, RECT, S_OK, TRUE, WPARAM},
         UI::{
             Shell::{
-                Shell_NotifyIconGetRect, Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP,
-                NIM_ADD, NIM_DELETE, NIM_MODIFY, NOTIFYICONDATAW, NOTIFYICONIDENTIFIER,
+                NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NIM_MODIFY, NOTIFYICONDATAW, NOTIFYICONIDENTIFIER, Shell_NotifyIconGetRect, Shell_NotifyIconW
             },
             WindowsAndMessaging::{
-                CreateIcon, CreateWindowExW, DefWindowProcW, DestroyIcon, DestroyWindow,
-                GetCursorPos, KillTimer, LoadImageW, RegisterClassW, RegisterWindowMessageA,
-                SendMessageW, SetTimer, CREATESTRUCTW, CW_USEDEFAULT, GWL_USERDATA, HICON,
-                IMAGE_ICON, LR_DEFAULTSIZE, LR_LOADFROMFILE, WINDOW_LONG_PTR_INDEX, WM_CREATE,
-                WM_DESTROY, WM_LBUTTONDBLCLK, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MBUTTONDBLCLK,
-                WM_MBUTTONDOWN, WM_MBUTTONUP, WM_MOUSEMOVE, WM_NCCREATE, WM_RBUTTONDBLCLK,
-                WM_RBUTTONDOWN, WM_RBUTTONUP, WM_TIMER, WNDCLASSW, WS_EX_LAYERED, WS_EX_NOACTIVATE,
-                WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT, WS_OVERLAPPED,
+                CREATESTRUCTW, CW_USEDEFAULT, CreateIcon, CreateWindowExW, DefWindowProcW, DestroyIcon, DestroyWindow, DispatchMessageW, GWL_USERDATA, GetCursorPos, GetMessageW, HICON, IMAGE_ICON, KillTimer, LR_DEFAULTSIZE, LR_LOADFROMFILE, LoadImageW, MSG, RegisterClassW, RegisterWindowMessageA, SendMessageW, SetTimer, TranslateMessage, WINDOW_LONG_PTR_INDEX, WM_CREATE, WM_DESTROY, WM_LBUTTONDBLCLK, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MBUTTONDBLCLK, WM_MBUTTONDOWN, WM_MBUTTONUP, WM_MOUSEMOVE, WM_NCCREATE, WM_RBUTTONDBLCLK, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_TIMER, WNDCLASSW, WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT, WS_OVERLAPPED
             },
         },
-    },
+    }, core::PCWSTR, s
 };
 
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -313,6 +303,22 @@ impl TrayIconImpl {
 
             Ok(Self { hwnd, internal_id })
         }
+    }
+
+    pub fn recv(&mut self) {
+        // recv required
+        unsafe {
+            let mut msg: MSG = std::mem::zeroed();
+
+            if GetMessageW(&mut msg, ptr::null_mut(), 0, 0) > 0 {
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+            }
+        }
+    }
+
+    pub fn get_hwnd(&self) -> HWND {
+        return self.hwnd;
     }
 
     pub fn set_icon(&mut self, icon: Option<Icon>) -> crate::Result<()> {

@@ -49,6 +49,8 @@ pub use tray::{
 pub use tray::NativeIcon;
 
 use dpi::PhysicalPosition;
+#[cfg(target_os = "windows")]
+use windows_sys::Win32::Foundation::HWND;
 
 impl PopupMenu {
     /// Displays the menu at the given screen position and waits for selection.
@@ -69,8 +71,8 @@ impl PopupMenu {
     ///
     /// This method blocks until the user selects an item or dismisses the menu.
     #[cfg(target_os = "windows")]
-    pub fn popup(&self, position: PhysicalPosition<f64>) -> Option<ItemId> {
-        windows::popup(self, position)
+    pub fn popup(&self, position: PhysicalPosition<f64>, hwnd: HWND) -> Option<ItemId> {
+        windows::popup(hwnd, self, position)
     }
 
     /// Displays the menu at the given screen position and waits for selection.

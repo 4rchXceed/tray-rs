@@ -1,15 +1,14 @@
 use std::ptr;
 
 use dpi::PhysicalPosition;
+use windows_sys::Win32::Foundation::HWND;
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    AppendMenuW, CreatePopupMenu, DestroyMenu, GetForegroundWindow, SetForegroundWindow,
-    TrackPopupMenu, HMENU, MF_CHECKED, MF_GRAYED, MF_POPUP, MF_SEPARATOR, MF_STRING,
-    TPM_LEFTALIGN, TPM_RETURNCMD, TPM_TOPALIGN,
+    AppendMenuW, CreatePopupMenu, DestroyMenu, GetForegroundWindow, GetWindowThreadProcessId, HMENU, MF_CHECKED, MF_GRAYED, MF_POPUP, MF_SEPARATOR, MF_STRING, SetForegroundWindow, TPM_LEFTALIGN, TPM_RETURNCMD, TPM_TOPALIGN, TrackPopupMenu
 };
 
 use crate::entry::{EntryKind, ItemId, PopupMenu};
 
-pub fn popup(menu: &PopupMenu, position: PhysicalPosition<f64>) -> Option<ItemId> {
+pub fn popup(hwnd: HWND, menu: &PopupMenu, position: PhysicalPosition<f64>) -> Option<ItemId> {
     unsafe {
         let hmenu = CreatePopupMenu();
         if hmenu.is_null() {
@@ -19,7 +18,6 @@ pub fn popup(menu: &PopupMenu, position: PhysicalPosition<f64>) -> Option<ItemId
         let mut id_map: Vec<ItemId> = Vec::new();
         build_menu(hmenu, menu.entries(), &mut id_map);
 
-        let hwnd = GetForegroundWindow();
         SetForegroundWindow(hwnd);
 
         let cmd = TrackPopupMenu(
@@ -33,6 +31,8 @@ pub fn popup(menu: &PopupMenu, position: PhysicalPosition<f64>) -> Option<ItemId
         );
 
         DestroyMenu(hmenu);
+
+        println!("{}", cmd);
 
         if cmd > 0 {
             id_map.get((cmd - 1) as usize).cloned()

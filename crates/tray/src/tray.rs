@@ -10,6 +10,8 @@ use std::{
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use once_cell::sync::{Lazy, OnceCell};
+#[cfg(target_os = "windows")]
+use windows_sys::Win32::Foundation::HWND;
 
 use crate::{error::Result, icon::Icon, TrayIconImpl};
 
@@ -197,6 +199,16 @@ impl TrayIcon {
     /// Returns the unique identifier for this tray icon.
     pub fn id(&self) -> &TrayIconId {
         &self.id
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn recv_messages(&self) {
+        self.tray.lock().unwrap().recv();
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn get_hwnd(&self) -> HWND {
+        self.tray.lock().unwrap().get_hwnd()
     }
 
     /// Sets or clears the icon image.
