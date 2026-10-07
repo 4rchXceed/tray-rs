@@ -32,8 +32,6 @@ pub fn popup(hwnd: HWND, menu: &PopupMenu, position: PhysicalPosition<f64>) -> O
 
         DestroyMenu(hmenu);
 
-        println!("{}", cmd);
-
         if cmd > 0 {
             id_map.get((cmd - 1) as usize).cloned()
         } else {
